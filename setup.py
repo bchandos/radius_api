@@ -11,7 +11,7 @@ setuptools.setup(
     description="A Radius CRM web services wrapper",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="",
+    url="https://github.com/bchandos/radius_api",
     packages=setuptools.find_packages(),
     classifiers=(
         "Programming Language :: Python :: 3.6",
