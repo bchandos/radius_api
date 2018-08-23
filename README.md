@@ -5,5 +5,5 @@ This package is a Python 3.6+ wrapper for the Radius CRM web services API. It in
 The RadiusInstance class accepts your Radius Web Services username and password, as well as the url of your server, provided in the Radius Web Services documentation. It creates the needed HTTPDigest authentication object that will be passed with all transactions. It also exposes all available Modules in your tenant via `all_modules`.
 #### `get_all_fields`
 Returns all the fields of a particular module as a list. Provides all field details when details=True.
-#### `get_metadata'
+#### `get_metadata`
 Returns all metadata about a Radius module
