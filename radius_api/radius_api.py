@@ -1,11 +1,10 @@
 import requests
 from requests.auth import HTTPDigestAuth
-import base64
 import time
 from urllib.parse import urlencode
 import csv
-import json
 from .exceptions import APIError
+
 
 class RadiusInstance:
 	"""The RadiusInstance class is a wrapper for the Radius CRM web services.
@@ -18,13 +17,11 @@ class RadiusInstance:
 		self.server_url = base_url + '/crm/webservice/modules/'
 		self.authentication = HTTPDigestAuth(user, password)
 		self.all_modules = None
-		self.all_modules = self._get(parameters={'useSystemAndDisplayLabels':'true'})
+		self.all_modules = self._get(parameters={'useSystemAndDisplayLabels': 'true'})
 	
-		
 	def __repr__(self):
 		return f'<Instance of Radius Web Service on {self.base_server}, as user: {self.user}>'
 
-		
 	def _get_module_name(self, module):
 		"""Checks for a module name in all_modules and returns the official name."""
 		for m in self.all_modules:
@@ -32,7 +29,6 @@ class RadiusInstance:
 				return m['module name']
 		raise APIError(f'Module <{module}> does not exist in instance.')
 				
-		
 	def _get(self, module=None, url_append='', parameters=None):
 		"""Processes HTTP GET request to the Radius Web Service and returns
 		the payload or Exception."""
@@ -54,20 +50,18 @@ class RadiusInstance:
 			status_code = r.status_code
 			try:
 				status = r.json()['status']
-			except KeyError:
-				raise APIError(f'Status not OK <{status_code}> and JSON returned from {r.url}, but does not contain expected payload.')
-			try:
 				error_message = (r.json()['payload']['Error Message'] if module == 'ExportFilters' else r.json()['message'])
 			except KeyError:
-				raise APIError(f'Status not OK <{status_code}> and JSON returned from {r.url}, but does not contain expected payload.')
+				raise APIError(	f'Status not OK <{status_code}> and JSON returned from {r.url}, '
+								f'but does not contain expected payload.')
 			else:
-				raise APIError(f'HTTP Response Code: {status_code}; API Response Status: {status}; Error Message: {error_message}')
+				raise APIError(	f'HTTP Response Code: {status_code}; API Response Status: {status}; '
+								f'Error Message: {error_message}')
 		elif r.ok and 'json' not in r.headers['Content-Type']:
 			raise APIError(f'Response OK, but no JSON returned from {r.url}')
 		else:
 			raise r.raise_for_status()
-	
-	
+
 	def _post(self, module, payload, url_append='', parameters=None):
 		"""Processes HTTP POST request to the Radius Web Service and returns
 		the payload or Exception."""
@@ -81,8 +75,7 @@ class RadiusInstance:
 			status = r.json()['status']
 			error_message = (r.json()['payload']['Error Message'] if module == 'ExportFilters' else r.json()['message'])
 			raise APIError(f'Error in server response, status not ok. Code: {status_code}; Status: {status}; Error Message: {error_message}')
-	
-	
+
 	def _put(self, module, payload, url_append='', parameters=None):
 		"""Processes HTTP PUT request to the Radius Web Service and returns
 		the payload or Exception."""
@@ -98,7 +91,6 @@ class RadiusInstance:
 			error_message = (r.json()['payload']['Error Message'] if module == 'ExportFilters' else r.json()['message'])
 			raise APIError(f'Error in server response, status not ok. Code: {status_code}; Status: {status}; Error Message: {error_message}')
 
-			
 	def _delete(self, module, url_append='', parameters=None):
 		"""Processes HTTP DELETE request to the Radius Web Service and returns
 		the server response."""
@@ -108,21 +100,18 @@ class RadiusInstance:
 		r = requests.delete(u, auth=self.authentication)
 		return r.text
 
-		
 	def get_all_fields(self, module, details=False):
 		"""Returns all the fields of a particular module as a list. Provides
 		all field details when details=True."""
 		p = None
 		if details:
-			p = {'includeDetails' : 'true'}
+			p = {'includeDetails': 'true'}
 		return self._get(module=module, url_append='fields', parameters=p)
 
-		
 	def get_metadata(self, module):
 		"""Returns all metadata about a Radius module"""
 		return self._get(module=module)
 
-		
 	def get_entity(self, module, entity_id, return_fields=None):
 		"""Given an entity id number and module, will return that entity.
 		Specific fields can be provided as a comma-separated list. 
@@ -133,7 +122,6 @@ class RadiusInstance:
 			p = None
 		return self._get(module=module, url_append=str(entity_id), parameters=p)
 
-		
 	def create_entity(self, module, request_body):
 		"""Create an entity within a specific module. Accepts a JSON object
 		consisting of createFields and, optionally, returnFields. Returns an
@@ -141,7 +129,6 @@ class RadiusInstance:
 		if 'createFields' in request_body.keys():
 			return self._post(module=module, payload=request_body)
 
-			
 	def update_entity(self, module, entity_id, request_body):
 		"""Update an entity within a specific module. Accepts a JSON object 
 		consisting of createFields and, optionally, returnFields. Returns an
@@ -157,14 +144,12 @@ class RadiusInstance:
 			request_body['createFields']['Participant'] = registration[0]['Participant']
 			request_body['createFields']['Iteration Name'] = registration[0]['Iteration Name']
 		return self._put(module=module, url_append=str(entity_id), payload=request_body)
-		
-		
+
 	def delete_entity(self, module, entity_id):
 		"""Deletes an entity within a specific module. Accepts an entity ID,
 		and returns a status and message."""
 		return self._delete(module=module, url_append=str(entity_id))
-		
-	
+
 	def search_for_entities(self, module, request_body):
 		"""Performs a search on a specific module. Accepts a JSON object
 		consisting of searchFields and, optionally, returnFields. Returns
@@ -183,15 +168,13 @@ class RadiusInstance:
 				e = self._post(module=module, url_append='search', payload=request_body, parameters=p)
 				all_entities.extend(e['entities'])
 			return all_entities
-			
 
 	def export_filter_create_task(self, filter_id):
 		"""Creates a task to execute an Export Filter. Accepts
 		the Export Filter ID."""
 		t = self._post(module='ExportFilters', url_append='createExecutionTask/'+str(filter_id), payload=None)
 		return t['Execution Task ID']
-		
-	
+
 	def get_export_filter_as_file(self, task_id, filename):
 		"""Generates a CSV file from export filter results. Although Radius
 		Web Services can return file contents natively, it returns a corrupted
@@ -203,7 +186,6 @@ class RadiusInstance:
 			writer.writeheader()
 			for entry in export_filter_as_list:
 				writer.writerow(entry)
-		
 
 	def get_export_filter_as_list(self, task_id):
 		"""Returns the export filter results as a list of dictionaries."""
@@ -233,8 +215,7 @@ class RadiusInstance:
 				t = self._get(module='ExportFilters', url_append='getExecutionTaskResult/'+task_id, parameters=p)
 				results_as_list.extend(t['entities'])
 		return results_as_list
-	
-	
+
 	def get_active_export_filters(self):
 		"""Returns all active Export Filters in the Radius instance."""
 		search_object = self.create_request_object('ExportFilters', {'Status': 'Active'}, type='search', return_fields=['Filter Name', 'Description', 'Primary Module', 'Entity ID'])
@@ -249,10 +230,9 @@ class RadiusInstance:
 			return id[0]['Entity ID']
 		else:
 			raise APIError(f'Export Filter <{export_filter_name}> not found.')
-			
-			
+
 	def create_request_object(self, module, fields, type='search', return_fields=[], strict=False):
-		"""Creates a dictionary to send in POST requests (as JSON) to the web service.
+		"""Creates a dictionary to send in POST and PUT requests (as JSON) to the web service.
 		Requires module to verify fields exist. If strict is True, will
 		raise Exception if any field cannot be found. Otherwise, will silently
 		drop fields from request. If field has Possible Values attribute, will
@@ -307,5 +287,3 @@ class RadiusInstance:
 		if checked_returns:
 			request_object['returnFields'] = checked_returns
 		return request_object
-		
-		

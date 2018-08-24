@@ -7,3 +7,5 @@ The RadiusInstance class accepts your Radius Web Services username and password,
 Returns all the fields of a particular module as a list. Provides all field details when details=True.
 #### `get_metadata`
 Returns all metadata about a Radius module
+#### `get_entity`
+Given an entity id number and module, will return that entity.	Specific fields can be provided as a comma-separated list.	Default will return all fields.
