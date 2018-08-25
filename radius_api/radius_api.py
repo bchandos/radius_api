@@ -1,7 +1,7 @@
 import requests
 from requests.auth import HTTPDigestAuth
 import time
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 import csv
 from .exceptions import APIError
 
@@ -14,7 +14,8 @@ class RadiusInstance:
 	def __init__(self, user, password, base_url):
 		self.base_server = base_url
 		self.user = user
-		self.server_url = base_url + '/crm/webservice/modules/'
+		url_parts = urlparse(base_url)
+		self.server_url = 'https://' + url_parts.host + '/crm/webservice/modules/'
 		self.authentication = HTTPDigestAuth(user, password)
 		self.all_modules = None
 		self.all_modules = self._get(parameters={'useSystemAndDisplayLabels': 'true'})
