@@ -15,7 +15,7 @@ class RadiusInstance:
 		self.base_server = base_url
 		self.user = user
 		url_parts = urlparse(base_url)
-		self.server_url = 'https://' + url_parts.host + '/crm/webservice/modules/'
+		self.server_url = 'https://' + url_parts.hostname + '/crm/webservice/modules/'
 		self.authentication = HTTPDigestAuth(user, password)
 		self.all_modules = None
 		self.all_modules = self._get(parameters={'useSystemAndDisplayLabels': 'true'})
