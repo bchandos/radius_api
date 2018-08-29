@@ -116,7 +116,7 @@ class RadiusInstance:
 		return self._get(module=module, url_append='fields', parameters=p)
 
 	def get_metadata(self, module):
-		"""Returns all metadata about a Radius module"""
+		"""Returns all metadata about a Radius module."""
 		return self._get(module=module)
 
 	def get_entity(self, module, entity_id, return_fields=None):
@@ -141,8 +141,8 @@ class RadiusInstance:
 		consisting of createFields and, optionally, returnFields. Returns an
 		entity ID, or other requested fields."""
 		if module == 'Registrations' and (
-				'Participant' not in request_body['createFields'].keys() or 'Iteration Name' not in request_body[
-			'createFields'].keys()):
+				'Participant' not in request_body['createFields'].keys() or 
+				'Iteration Name' not in request_body['createFields'].keys()):
 			# Per web services documentation, all Registrations updates must include
 			# Participant and Iteration Name fields in the payload. Server returns
 			# NullPointerException when it's not included. Participant in the Contact
@@ -209,7 +209,7 @@ class RadiusInstance:
 			# return an empty list, as that is more reasonable behavior
 			return []
 		if f['Execution Task Status'] != 'Finished':
-			for loop in range(3):
+			for _ in range(3):
 				time.sleep(2)
 				f = self._get(module='ExportFilters', url_append='getExecutionTask/' + task_id)
 				if f['Execution Task Status'] == 'Finished':
