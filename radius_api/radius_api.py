@@ -42,12 +42,14 @@ class RadiusInstance:
 		# For the purposes of this API, we want to return the payload, if it exists, or an APIError that
 		# is as descriptive as possible. In the case that the server response is not OK, and does not
 		# return JSON that might tell us why, we fall back on requests.raise_from_status().
-		if r.ok and 'json' in r.headers['Content-Type']:
+		if r.ok:
 			try:
 				return r.json()['payload']
 			except KeyError:
 				raise APIError(f'JSON returned from {r.url}, but does not contain expected payload.')
-		elif not r.ok and 'json' in r.headers['Content-Type']:
+			except TypeError:
+				raise APIError(f'Response OK, but no JSON returned from {r.url}')
+		elif not r.ok:
 			status_code = r.status_code
 			try:
 				status = r.json()['status']
@@ -57,12 +59,12 @@ class RadiusInstance:
 				raise APIError(
 					f'Status not OK <{status_code}> and JSON returned from {r.url}, '
 					f'but does not contain expected payload.')
+			except TypeError:
+				raise APIError(f'Status not OK <{status_code}> and no JSON returned from {r.url}')
 			else:
 				raise APIError(
 					f'HTTP Response Code: {status_code}; API Response Status: {status}; '
 					f'Error Message: {error_message}')
-		elif r.ok and 'json' not in r.headers['Content-Type']:
-			raise APIError(f'Response OK, but no JSON returned from {r.url}')
 		else:
 			raise r.raise_for_status()
 
