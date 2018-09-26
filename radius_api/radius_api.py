@@ -161,8 +161,8 @@ class RadiusInstance:
             # the Registration passed via entity_id.
             registration = self.get_entity('Registrations', entity_id, return_fields=[
                                            'Participant', 'Iteration Name'])
-            request_body['createFields']['Participant'] = registration['Participant']
-            request_body['createFields']['Iteration Name'] = registration['Iteration Name']
+            request_body['createFields']['Participant'] = registration['entity']['Participant']
+            request_body['createFields']['Iteration Name'] = registration['entity']['Iteration Name']
         return self._put(module=module, url_append=str(entity_id), payload=request_body)
 
     def delete_entity(self, module, entity_id):
