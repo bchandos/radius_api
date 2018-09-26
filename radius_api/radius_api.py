@@ -293,6 +293,11 @@ class RadiusInstance:
                 if 'Display Label' in all_fields[a].keys():
                     if field == a or field == all_fields[a]['Display Label']:
                         if 'Possible Values' in all_fields[a].keys():
+                            # multi-select field must be list type or web service will return error
+                            if all_fields[a]['Data Type'] == 'Multi-Select' and type(fields[field]) != list:
+                                fields[field] = [fields[field]]
+                            # to allow for multi-select list checking, convert single values to list
+                            # and use set mebership to test they are in possible values
                             v = fields[field] if type(fields[field]) == list else [
                                 fields[field]]
                             if set(v) <= set(all_fields[a]['Possible Values']):
