@@ -159,14 +159,10 @@ class RadiusInstance:
             # NullPointerException when it's not included. Participant in the Contact
             # Entity ID, and Iteration Name is also an ID number. Both are available in
             # the Registration passed via entity_id.
-            registration_ro = self.create_request_object(
-                'Registrations', {'Entity ID': str(entity_id)},
-                request_type='search',
-                return_fields=['Participant', 'Iteration Name'])
-            registration = self.search_for_entities(
-                'Registrations', registration_ro)
-            request_body['createFields']['Participant'] = registration[0]['Participant']
-            request_body['createFields']['Iteration Name'] = registration[0]['Iteration Name']
+            registration = self.get_entity('Registrations', entity_id, return_fields=[
+                                           'Participant', 'Iteration Name'])
+            request_body['createFields']['Participant'] = registration['Participant']
+            request_body['createFields']['Iteration Name'] = registration['Iteration Name']
         return self._put(module=module, url_append=str(entity_id), payload=request_body)
 
     def delete_entity(self, module, entity_id):
