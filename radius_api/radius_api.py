@@ -132,7 +132,7 @@ class RadiusInstance:
 
     def get_entity(self, module, entity_id, return_fields=None):
         """Given an entity id number and module, will return that entity.
-        Specific fields can be provided as a comma-separated list. 
+        Specific fields can be provided as a comma-separated list.
         Default will return all fields."""
         if return_fields:
             p = {'returnFields': ','.join(return_fields)}
@@ -219,6 +219,8 @@ class RadiusInstance:
             # Execution Task Status 'Error' and no message when the
             # Export Filter is empty. In this case we want to
             # return an empty list, as that is more reasonable behavior
+                        # TODO: Implement fix 807658 Export Filter Error
+                        # Executing an Export Filter that returns no results now returns a blank file instead of an error.
             return []
         if f['Execution Task Status'] != 'Finished':
             for _ in range(3):
@@ -273,7 +275,7 @@ class RadiusInstance:
         check submitted value against list.
 
         Note: web services spec encourages the use of Field IDs in requests for consistency.
-        An entity search using Field IDs will return Field IDs, which are less clear 
+        An entity search using Field IDs will return Field IDs, which are less clear
         and not useful without lookup functionality. This may be a future functionality."""
 
         all_fields = self.get_all_fields(module, details=True)
@@ -291,12 +293,14 @@ class RadiusInstance:
                 if 'Display Label' in all_fields[a].keys():
                     if field == a or field == all_fields[a]['Display Label']:
                         if 'Possible Values' in all_fields[a].keys():
-                            if fields[field] in all_fields[a]['Possible Values']:
+                            v = fields[field] if type(fields[field]) == list else [
+                                fields[field]]
+                            if set(v) <= set(all_fields[a]['Possible Values']):
                                 checked_fields[a] = fields[field]
                                 positive_id = True
                             else:
                                 raise APIError(
-                                    f'Field value <{fields[field]}> not found in possible values for field <{field}>.')
+                                    f'Field value(s) <{fields[field]}> not found in possible values for field <{field}>.')
                         else:
                             checked_fields[a] = fields[field]
                             positive_id = True
