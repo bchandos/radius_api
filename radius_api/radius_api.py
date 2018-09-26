@@ -151,7 +151,7 @@ class RadiusInstance:
         """Update an entity within a specific module. Accepts a JSON object
         consisting of createFields and, optionally, returnFields. Returns an
         entity ID, or other requested fields."""
-        if module == 'Registrations' and (
+        if self._get_module_name(module) == 'Registrations' and (
             'Participant' not in request_body['createFields'].keys() or
                 'Iteration Name' not in request_body['createFields'].keys()):
             # Per web services documentation, all Registrations updates must include
