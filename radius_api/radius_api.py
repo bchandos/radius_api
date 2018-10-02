@@ -214,13 +214,7 @@ class RadiusInstance:
         """Returns the export filter results as a list of dictionaries."""
         f = self._get(module='ExportFilters',
                       url_append='getExecutionTask/' + task_id)
-        if f['Execution Task Status'] == 'Error':
-            # Radius will return with status 'ok' but with an
-            # Execution Task Status 'Error' and no message when the
-            # Export Filter is empty. In this case we want to
-            # return an empty list, as that is more reasonable behavior
-                        # TODO: Implement fix 807658 Export Filter Error
-                        # Executing an Export Filter that returns no results now returns a blank file instead of an error.
+        if f['Total Records'] == 0:
             return []
         if f['Execution Task Status'] != 'Finished':
             for _ in range(3):
