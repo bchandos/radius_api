@@ -214,8 +214,6 @@ class RadiusInstance:
         """Returns the export filter results as a list of dictionaries."""
         f = self._get(module='ExportFilters',
                       url_append='getExecutionTask/' + task_id)
-        if f['Total Records'] == 0:
-            return []
         if f['Execution Task Status'] != 'Finished':
             for _ in range(3):
                 time.sleep(2)
@@ -225,6 +223,8 @@ class RadiusInstance:
                     break
             else:
                 return f'Task timed out. Status returned as {f["Execution Task Status"]}'
+        if f['Total Records'] == 0:
+            return []
         t = self._get(module='ExportFilters',
                       url_append='getExecutionTaskResult/' + task_id)
         results_as_list = t['entities']
