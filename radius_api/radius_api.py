@@ -156,7 +156,7 @@ class RadiusInstance:
                 'Iteration Name' not in request_body['createFields'].keys()):
             # Per web services documentation, all Registrations updates must include
             # Participant and Iteration Name fields in the payload. Server returns
-            # NullPointerException when it's not included. Participant in the Contact
+            # NullPointerException when it's not included. Participant is the Contact
             # Entity ID, and Iteration Name is also an ID number. Both are available in
             # the Registration passed via entity_id.
             registration = self.get_entity('Registrations', entity_id, return_fields=[
