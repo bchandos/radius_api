@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="radius_api",
-    version="0.0.1",
+    version="0.0.2",
     author="Bill Chandos",
     author_email="chandos@uoregon.edu",
     description="A Radius CRM web services wrapper",

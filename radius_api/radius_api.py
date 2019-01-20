@@ -22,14 +22,14 @@ class RadiusInstance:
             parameters={'useSystemAndDisplayLabels': 'true'})
 
     def __repr__(self):
-        return f'<Instance of Radius Web Service on {self.base_server}, as user: {self.user}>'
+        return '<Instance of Radius Web Service on %s, as user: %s>' % (self.base_server, self.user)
 
     def _get_module_name(self, module):
         """Checks for a module name in all_modules and returns the official name."""
         for m in self.all_modules:
             if m['module name'] == module or m['module display name'] == module:
                 return m['module name']
-        raise APIError(f'Module <{module}> does not exist in instance.')
+        raise APIError('Module <%s> does not exist in instance.' % module)
 
     def _get(self, module=None, url_append='', parameters=None):
         """Processes HTTP GET request to the Radius Web Service and returns
@@ -48,11 +48,9 @@ class RadiusInstance:
             try:
                 return r.json()['payload']
             except KeyError:
-                raise APIError(
-                    f'JSON returned from {r.url}, but does not contain expected payload.')
+                raise APIError('JSON returned from %s, but does not contain expected payload.' % r.url)
             except TypeError:
-                raise APIError(
-                    f'Response OK, but no JSON returned from {r.url}')
+                raise APIError('Response OK, but no JSON returned from %s' % r.url)
         elif not r.ok:
             status_code = r.status_code
             try:
@@ -60,16 +58,11 @@ class RadiusInstance:
                 error_message = (
                     r.json()['payload']['Error Message'] if module == 'ExportFilters' else r.json()['message'])
             except KeyError:
-                raise APIError(
-                    f'Status not OK <{status_code}> and JSON returned from {r.url}, '
-                    f'but does not contain expected payload.')
+                raise APIError('Status not OK <%s> and JSON returned from %s, but does not contain expected payload.' % (status_code, r.url))
             except TypeError:
-                raise APIError(
-                    f'Status not OK <{status_code}> and no JSON returned from {r.url}')
+                raise APIError('Status not OK <%s> and no JSON returned from %s' % (status_code, r.url))
             else:
-                raise APIError(
-                    f'HTTP Response Code: {status_code}; API Response Status: {status}; '
-                    f'Error Message: {error_message}')
+                raise APIError('HTTP Response Code: %s; API Response Status: %s; Error Message: %s' % (status_code, status, error_message))
         else:
             raise r.raise_for_status()
 
@@ -88,8 +81,7 @@ class RadiusInstance:
             status = r.json()['status']
             error_message = (r.json()['payload']['Error Message']
                              if module == 'ExportFilters' else r.json()['message'])
-            raise APIError(
-                f'Error in server response, status not ok. Code: {status_code}; Status: {status}; Error Message: {error_message}')
+            raise APIError('Error in server response, status not ok. Code: %s; Status: %s; Error Message: %s' % (status_code, status, error_message))
 
     def _put(self, module, payload, url_append='', parameters=None):
         """Processes HTTP PUT request to the Radius Web Service and returns
@@ -105,9 +97,7 @@ class RadiusInstance:
             status = r.json()['status']
             error_message = (r.json()['payload']['Error Message']
                              if module == 'ExportFilters' else r.json()['message'])
-            raise APIError(
-                f'Error in server response, status not ok. Code: {status_code}; '
-                f'Status: {status}; Error Message: {error_message}')
+            raise APIError('Error in server response, status not ok. Code: %s; Status: %s; Error Message: %s' % (status_code, status, error_message))
 
     def _delete(self, module, url_append='', parameters=None):
         """Processes HTTP DELETE request to the Radius Web Service and returns
@@ -222,7 +212,7 @@ class RadiusInstance:
                 if f['Execution Task Status'] == 'Finished':
                     break
             else:
-                return f'Task timed out. Status returned as {f["Execution Task Status"]}'
+                return 'Task timed out. Status returned as %s' % f['Execution Task Status']
         if f['Total Records'] == 0:
             return []
         t = self._get(module='ExportFilters',
@@ -259,7 +249,7 @@ class RadiusInstance:
         if filter_id:
             return filter_id[0]['Entity ID']
         else:
-            raise APIError(f'Export Filter <{export_filter_name}> not found.')
+            raise APIError('Export Filter <%s> not found.' % export_filter_name)
 
     def create_request_object(self, module, fields, request_type='search', return_fields=None, strict=False):
         """Creates a dictionary to send in POST and PUT requests (as JSON) to the web service.
@@ -298,8 +288,7 @@ class RadiusInstance:
                                 checked_fields[a] = fields[field]
                                 positive_id = True
                             else:
-                                raise APIError(
-                                    f'Field value(s) <{fields[field]}> not found in possible values for field <{field}>.')
+                                raise APIError('Field value(s) <%s> not found in possible values for field <%s>.' % (fields[field], field))
                         else:
                             checked_fields[a] = fields[field]
                             positive_id = True
@@ -307,8 +296,7 @@ class RadiusInstance:
                     checked_fields['Entity ID'] = fields[field]
                     positive_id = True
             if not positive_id and strict:
-                raise APIError(
-                    f'Field name <{field}> not found in module <{module}>.')
+                raise APIError('Field name <%s> not found in module <%s>.' % (field, module))
 
         for rf in return_fields:
             positive_id = False
@@ -321,8 +309,7 @@ class RadiusInstance:
                     checked_returns.append('Entity ID')
                     positive_id = True
             if not positive_id and strict:
-                raise APIError(
-                    f'Field name <{field}> not found in module <{module}>.')
+                raise APIError('Field name <%s> not found in module <%s>.' % (field, module))
         request_object = {field_name: checked_fields}
         if checked_returns:
             request_object['returnFields'] = checked_returns
