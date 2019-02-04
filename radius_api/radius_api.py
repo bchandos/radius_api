@@ -168,7 +168,7 @@ class RadiusInstance:
         a period (.) and so it is best to specify return fields."""
         e = self._post(module=module, url_append='search',
                        payload=request_body)
-        if e['total pages'] == 1:
+        if e['total pages'] == 0 or e['total pages'] == 1:
             return e['entities']
         else:
             all_entities = e['entities']
