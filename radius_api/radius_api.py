@@ -1,6 +1,7 @@
 import requests
 from requests.auth import HTTPDigestAuth
 import time
+from datetime import date
 from urllib.parse import urlencode, urlparse
 import csv
 from .exceptions import APIError
@@ -289,6 +290,14 @@ class RadiusInstance:
                                 positive_id = True
                             else:
                                 raise APIError('Field value(s) <%s> not found in possible values for field <%s>.' % (fields[field], field))
+                        elif field_name == 'searchFields' and all_fields[a]['Data Type'] == 'Date':
+                            # all displayed and returned dates are in format mm/dd/YYYY
+                            # web service expects dates in ISO format (YYYY-mm-dd)
+                            # but only when searching. we will convert.
+                            d = fields[field]
+                            parts = list(map(int, d.split('/')))
+                            checked_fields[a] = date(month=parts[0], day=parts[1], year=parts[2]).isoformat()
+                            positive_id = True
                         else:
                             checked_fields[a] = fields[field]
                             positive_id = True
