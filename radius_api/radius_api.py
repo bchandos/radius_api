@@ -135,7 +135,7 @@ class RadiusInstance:
         consisting of createFields and, optionally, returnFields. Returns an
         entity ID, or other requested fields."""
         if 'createFields' in request_body.keys():
-            return self._post(module=module, payload=request_body)
+            return self._post(module=module, payload=request_body)['entity']
 
     def update_entity(self, module, entity_id, request_body):
         """Update an entity within a specific module. Accepts a JSON object
