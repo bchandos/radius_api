@@ -251,6 +251,18 @@ class RadiusInstance:
             return filter_id[0]['Entity ID']
         else:
             raise APIError('Export Filter <%s> not found.' % export_filter_name)
+    
+
+    def get_export_filter_by_name_as_list(self, export_filter_name):
+        """This helper function combines a few web service calls to
+        retrieve an Export filter as a list."""
+        try:
+            filter_id = self.get_export_filter_id_by_name(export_filter_name)
+        except APIError:
+            pass
+        else:
+            task_id = self.export_filter_create_task(filter_id)
+            return self.get_export_filter_as_list(task_id)
 
     def create_request_object(self, module, fields, request_type='search', return_fields=None, strict=False):
         """Creates a dictionary to send in POST and PUT requests (as JSON) to the web service.
