@@ -111,20 +111,45 @@ class RadiusInstance:
 
     def get_all_fields(self, module, details=False):
         """Returns all the fields of a particular module as a list. Provides
-        all field details when details=True."""
+        all field details when details=True.
+        
+        :param module: the name of the Radius module
+        :param details: whether to return full field details, default=False
+        :type module: str
+        :type details: bool
+        :returns: all fields within specified module, with or without details
+        :rtype: dict
+        """
         p = None
         if details:
             p = {'includeDetails': 'true'}
         return self._get(module=module, url_append='fields', parameters=p)
 
     def get_metadata(self, module):
-        """Returns all metadata about a Radius module."""
+        """Returns all metadata about a Radius module.
+        
+        :param module: the name of the Radius module
+        :type module: str
+        :returns: module metadata
+        :rtype: dict
+        """
         return self._get(module=module)
 
     def get_entity(self, module, entity_id, return_fields=None):
         """Given an entity id number and module, will return that entity.
         Specific fields can be provided as a comma-separated list.
-        Default will return all fields."""
+        Default will return all fields.
+        
+        :param module: the name of the Radius module
+        :param entity_id: the id number of the Radius entity
+        :param return_fields: module fields to return, default=None which returns all fields
+        :type module: str
+        :type entity_id: int, str
+        :type return_fields: list
+        :returns: Provided fields for Radius entity, or all fields
+        :rtype: dict
+        
+        """
         if return_fields:
             p = {'returnFields': ','.join(return_fields)}
         else:
@@ -134,17 +159,41 @@ class RadiusInstance:
     def create_entity(self, module, request_body):
         """Create an entity within a specific module. Accepts a JSON object
         consisting of createFields and, optionally, returnFields. Returns an
-        entity ID, or other requested fields."""
+        entity ID, or other requested fields.
+        
+        :param module: the name of the Radius module
+        :param request_body: the structured Radius request
+        :type module: str
+        :type request_body: dict
+        :returns: Radius entity id of created object
+        :rtype: dict
+        
+        .. note:: use ``create_request_object`` to generate the request_body
+
+        """
         if 'createFields' in request_body.keys():
             return self._post(module=module, payload=request_body)['entity']
 
     def update_entity(self, module, entity_id, request_body):
         """Update an entity within a specific module. Accepts a JSON object
         consisting of createFields and, optionally, returnFields. Returns an
-        entity ID, or other requested fields."""
+        entity ID, or other requested fields.
+        
+        :param module: the name of the Radius module
+        :param entity_id: the id number of the Radius entity
+        :param request_body: the structured Radius request
+        :type module: str
+        :type request_body: dict
+        :type entity_id: int, str
+        :returns: Radius entity id of created object
+        :rtype: dict
+        
+        .. note:: use ``create_request_object`` to generate the request_body
+             
+        """
         if self._get_module_name(module) == 'Registrations' and (
             'Participant' not in request_body['createFields'].keys() or
-                'Iteration Name' not in request_body['createFields'].keys()):
+            'Iteration Name' not in request_body['createFields'].keys()):
             # Per web services documentation, all Registrations updates must include
             # Participant and Iteration Name fields in the payload. Server returns
             # NullPointerException when it's not included. Participant is the Contact
@@ -158,7 +207,16 @@ class RadiusInstance:
 
     def delete_entity(self, module, entity_id):
         """Deletes an entity within a specific module. Accepts an entity ID,
-        and returns a status and message."""
+        and returns a status and message.
+        
+        :param module: the name of the Radius module
+        :param entity_id: the id number of the Radius entity
+        :type module: str
+        :type entity_id: int, str
+        :returns: deletion confirmation message
+        :rtype: str
+        
+        """
         return self._delete(module=module, url_append=str(entity_id))
 
     def search_for_entities(self, module, request_body):
@@ -166,7 +224,20 @@ class RadiusInstance:
         consisting of searchFields and, optionally, returnFields. Returns
         all module fields if returnFields is not specified. Note: currently
         Radius Web Services will not return all fields if any field names have
-        a period (.) and so it is best to specify return fields."""
+        a period (.) and so it is best to specify return fields.
+        
+        :param module: the name of the Radius module
+        :param request_body: the structured Radius request
+        :type module: str
+        :type request_body: dict
+        :returns: List of matching entities, with requested fields or all fields
+        :rtype: list
+
+        .. note:: use ``create_request_object`` to generate the request_body
+        .. note:: provide ``return_fields`` parameter to ``create_request_object``
+                  to avoid issues with Radius Web Services and field names with '.'
+        
+        """
         e = self._post(module=module, url_append='search',
                        payload=request_body)
         if e['total pages'] == 0 or e['total pages'] == 1:
@@ -184,7 +255,14 @@ class RadiusInstance:
 
     def export_filter_create_task(self, filter_id):
         """Creates a task to execute an Export Filter. Accepts
-        the Export Filter ID."""
+        the Export Filter ID.
+        
+        :param filter_id: the id of the Radius Export Filter
+        :type filter_id: int, str
+        :returns: execution task ID
+        :rtype: str
+        
+        """
         t = self._post(module='ExportFilters',
                        url_append='createExecutionTask/' + str(filter_id), payload=None)
         return t['Execution Task ID']
@@ -192,7 +270,15 @@ class RadiusInstance:
     def get_export_filter_as_file(self, task_id, filename):
         """Generates a CSV file from export filter results. Although Radius
         Web Services can return file contents natively, it returns a corrupted
-        ZIP file that cannot be handled in software."""
+        ZIP file that cannot be handled in software.
+        
+        :param task_id: the execution task ID returned by ``export_filter_create_task``
+        :param filename: the target filename for the CSV-formatted results
+        :type task_id: str
+        :type filename: str
+        :returns: nothing
+        
+        """
         export_filter_as_list = self.get_export_filter_as_list(task_id)
         with open(filename, 'w', newline='') as csvfile:
             fieldnames = list(export_filter_as_list[0].keys())
@@ -202,7 +288,14 @@ class RadiusInstance:
                 writer.writerow(entry)
 
     def get_export_filter_as_list(self, task_id):
-        """Returns the export filter results as a list of dictionaries."""
+        """Returns the export filter results as a list of dictionaries.
+        
+        :param task_id: the execution task ID returned by ``export_filter_create_task``
+        :type task_id: str
+        :returns: Export Filter results as a list of dictionaries
+        :rtype: list
+        
+        """
         f = self._get(module='ExportFilters',
                       url_append='getExecutionTask/' + task_id)
         if f['Execution Task Status'] != 'Finished':
@@ -231,7 +324,12 @@ class RadiusInstance:
         return results_as_list
 
     def get_active_export_filters(self):
-        """Returns all active Export Filters in the Radius instance."""
+        """Returns all active Export Filters in the Radius instance.
+        
+        :returns: list of active Export Filters
+        :rtype: list
+        
+        """
         search_object = self.create_request_object(
             'ExportFilters', {'Status': 'Active'},
             request_type='search',
@@ -242,7 +340,16 @@ class RadiusInstance:
 
     def get_export_filter_id_by_name(self, export_filter_name):
         """Searches for an Export Filter by name and returns either
-        the Export Filter ID, or an Exception if not found."""
+        the Export Filter ID, or an Exception if not found.
+        
+        :param export_filter_name: the exact name of the Export Filter
+        :type export_filter_name: str
+        :returns: entity ID of the export filter
+        :rtype: str
+
+        :raises: APIError when matching Export Filter is not found
+        
+        """
         search_object = self.create_request_object(
             'ExportFilters', {'Filter Name': export_filter_name},
             request_type='search', return_fields=['Entity ID'])
@@ -255,7 +362,14 @@ class RadiusInstance:
 
     def get_export_filter_by_name_as_list(self, export_filter_name):
         """This helper function combines a few web service calls to
-        retrieve an Export filter as a list."""
+        retrieve an Export filter as a list.
+        
+        :param export_filter_name: the exact name of the Export Filter
+        :type export_filter_name: str
+        :returns: Export Filter results as a list of dictionaries
+        :rtype: str
+
+        """
         try:
             filter_id = self.get_export_filter_id_by_name(export_filter_name)
         except APIError:
@@ -271,7 +385,18 @@ class RadiusInstance:
         drop fields from request. If field has Possible Values attribute, will
         check submitted value against list.
 
-        Note: web services spec encourages the use of Field IDs in requests for consistency.
+        :param module: the name of the Radius module
+        :param fields: a dictionary of field name and value pairs
+        :param request_type: what type of request object to create: search, update, or create. Default='search' 
+        :param return_fields: a list of fields to return, default=None which returns all fields for search, or Entity ID for others
+        :param strict: indicates if invalid field names should be dropped silently, or raise an exception. Default=False
+        :type module: str
+        :type fields: dict
+        :type request_type: str
+        :type return_fields: list
+        :type strict: bool
+
+        ..note:: web services spec encourages the use of Field IDs in requests for consistency.
         An entity search using Field IDs will return Field IDs, which are less clear
         and not useful without lookup functionality. This may be a future functionality."""
 
