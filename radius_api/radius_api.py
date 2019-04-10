@@ -287,11 +287,13 @@ class RadiusInstance:
             for entry in export_filter_as_list:
                 writer.writerow(entry)
 
-    def get_export_filter_as_list(self, task_id):
+    def get_export_filter_as_list(self, task_id, checks=3):
         """Returns the export filter results as a list of dictionaries.
 
         :param task_id: the execution task ID returned by ``export_filter_create_task``
+        :param checks: number of 2-second waits between checks, default=3
         :type task_id: str
+        :type checks: int
         :returns: Export Filter results as a list of dictionaries
         :rtype: list
 
@@ -300,7 +302,7 @@ class RadiusInstance:
         f = self._get(module='ExportFilters',
                       url_append='getExecutionTask/' + task_id)
         if f['Execution Task Status'] != 'Finished':
-            for _ in range(3):
+            for _ in range(checks):
                 time.sleep(2)
                 f = self._get(module='ExportFilters',
                               url_append='getExecutionTask/' + task_id)
@@ -348,7 +350,7 @@ class RadiusInstance:
         :returns: entity ID of the export filter
         :rtype: str
 
-        :raises: APIError when matching Export Filter is not found
+        :raises APIError: when matching Export Filter is not found
         """
         search_object = self.create_request_object(
             'ExportFilters', {'Filter Name': export_filter_name},
@@ -360,21 +362,22 @@ class RadiusInstance:
             raise APIError('Export Filter <%s> not found.' %
                            export_filter_name)
 
-    def get_export_filter_by_name_as_list(self, export_filter_name):
+    def get_export_filter_by_name_as_list(self, export_filter_name, checks=None):
         """This helper function combines a few web service calls to
-        retrieve an Export filter as a list.
+        retrieve a named Export filter as a list.
 
         :param export_filter_name: the exact name of the Export Filter
+        :param checks: number of 2-second waits between checks to pass to `get_export_filter_as_list`, default=None
         :type export_filter_name: str
+        :type checks: int
         :returns: Export Filter results as a list of dictionaries
         :rtype: list
         """
-        try:
-            filter_id = self.get_export_filter_id_by_name(export_filter_name)
-        except APIError:
-            pass
+        filter_id = self.get_export_filter_id_by_name(export_filter_name)
+        task_id = self.export_filter_create_task(filter_id)
+        if checks:
+            return self.get_export_filter_as_list(task_id, checks=checks)
         else:
-            task_id = self.export_filter_create_task(filter_id)
             return self.get_export_filter_as_list(task_id)
 
     def create_request_object(self, module, fields, request_type='search', return_fields=None, strict=False):
@@ -394,6 +397,9 @@ class RadiusInstance:
         :type request_type: str
         :type return_fields: list
         :type strict: bool
+
+        :raises APIError: in strict mode, if any field cannot be found
+        :raises APIError: if field not in Possible Values attribute (e.g. Multi-Select field type)
 
         ..note:: web services spec encourages the use of Field IDs in requests for consistency.
         An entity search using Field IDs will return Field IDs, which are less clear
