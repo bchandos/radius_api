@@ -309,8 +309,8 @@ class RadiusInstance:
                 if f['Execution Task Status'] == 'Finished':
                     break
             else:
-                raise APIError('Task timed out. Status returned as %s' %
-                               f['Execution Task Status'])
+                raise APIError('Task timed out after %s seconds. Status returned as %s' %
+                               (checks * 2, f['Execution Task Status']))
         if f['Total Records'] == 0:
             return []
         t = self._get(module='ExportFilters',
