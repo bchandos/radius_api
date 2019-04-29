@@ -380,6 +380,21 @@ class RadiusInstance:
         else:
             return self.get_export_filter_as_list(task_id)
 
+    def get_export_filter_by_name_as_file(self, export_filter_name, filename):
+        """This helper function combines a few web service calls to
+        retrieve a named Export filter as a file.
+
+        :param export_filter_name: the exact name of the Export Filter
+        :param filename: the CSV file to write
+        :type export_filter_name: str
+        :type filen: str
+        :returns: nothing
+        """
+
+        filter_id = self.get_export_filter_id_by_name(export_filter_name)
+        task_id = self.export_filter_create_task(filter_id)
+        self.get_export_filter_as_file(task_id, filename)
+
     def create_request_object(self, module, fields, request_type='search', return_fields=None, strict=False):
         """Creates a dictionary to send in POST and PUT requests (as JSON) to the web service.
         Requires module to verify fields exist. If strict is True, will
