@@ -10,7 +10,7 @@ from .exceptions import APIError
 class RadiusInstance:
     """The RadiusInstance class is a wrapper for the Radius CRM web services.
     Provide username and password as provided by the web service, and base_url
-    as listed in the web services documentation."""
+    for your instance as listed in the web services documentation."""
 
     def __init__(self, user, password, base_url):
         self.base_server = base_url
@@ -19,8 +19,7 @@ class RadiusInstance:
         self.server_url = 'https://' + url_parts.hostname + '/crm/webservice/modules/'
         self.authentication = HTTPDigestAuth(user, password)
         self.all_modules = None
-        self.all_modules = self._get(
-            parameters={'useSystemAndDisplayLabels': 'true'})
+        self.all_modules = self._get(parameters={'useSystemAndDisplayLabels': 'true'})
 
     def __repr__(self):
         return '<Instance of Radius Web Service on %s, as user: %s>' % (self.base_server, self.user)
@@ -49,11 +48,9 @@ class RadiusInstance:
             try:
                 return r.json()['payload']
             except KeyError:
-                raise APIError(
-                    'JSON returned from %s, but does not contain expected payload.' % r.url)
+                raise APIError('JSON returned from %s, but does not contain expected payload.' % r.url)
             except TypeError:
-                raise APIError(
-                    'Response OK, but no JSON returned from %s' % r.url)
+                raise APIError('Response OK, but no JSON returned from %s' % r.url)
         elif not r.ok:
             status_code = r.status_code
             try:
@@ -127,9 +124,7 @@ class RadiusInstance:
         :returns: all fields within specified module, with or without details
         :rtype: dict
         """
-        p = None
-        if details:
-            p = {'includeDetails': 'true'}
+        p = {'includeDetails': 'true'} if details else None
         return self._get(module=module, url_append='fields', parameters=p)
 
     def get_metadata(self, module):
@@ -299,13 +294,11 @@ class RadiusInstance:
 
         :raises APIError: when execution task times out
         """
-        f = self._get(module='ExportFilters',
-                      url_append='getExecutionTask/' + task_id)
+        f = self._get(module='ExportFilters', url_append='getExecutionTask/' + task_id)
         if f['Execution Task Status'] != 'Finished':
             for _ in range(checks):
                 time.sleep(2)
-                f = self._get(module='ExportFilters',
-                              url_append='getExecutionTask/' + task_id)
+                f = self._get(module='ExportFilters', url_append='getExecutionTask/' + task_id)
                 if f['Execution Task Status'] == 'Finished':
                     break
             else:
@@ -313,8 +306,7 @@ class RadiusInstance:
                                (checks * 2, f['Execution Task Status']))
         if f['Total Records'] == 0:
             return []
-        t = self._get(module='ExportFilters',
-                      url_append='getExecutionTaskResult/' + task_id)
+        t = self._get(module='ExportFilters', url_append='getExecutionTaskResult/' + task_id)
         results_as_list = t['entities']
         pages = t['total pages']
         query_id = t['queryId']
@@ -334,7 +326,8 @@ class RadiusInstance:
         :rtype: list
         """
         search_object = self.create_request_object(
-            'ExportFilters', {'Status': 'Active'},
+            module='ExportFilters', 
+            fields={'Status': 'Active'},
             request_type='search',
             return_fields=[
                 'Filter Name', 'Description',
@@ -353,14 +346,15 @@ class RadiusInstance:
         :raises APIError: when matching Export Filter is not found
         """
         search_object = self.create_request_object(
-            'ExportFilters', {'Filter Name': export_filter_name},
-            request_type='search', return_fields=['Entity ID'])
+            module='ExportFilters', 
+            fields={'Filter Name': export_filter_name},
+            request_type='search', 
+            return_fields=['Entity ID'])
         filter_id = self.search_for_entities('ExportFilters', search_object)
         if filter_id:
             return filter_id[0]['Entity ID']
         else:
-            raise APIError('Export Filter <%s> not found.' %
-                           export_filter_name)
+            raise APIError('Export Filter <%s> not found.' % export_filter_name)
 
     def get_export_filter_by_name_as_list(self, export_filter_name, checks=None):
         """This helper function combines a few web service calls to
@@ -420,7 +414,8 @@ class RadiusInstance:
         An entity search using Field IDs will return Field IDs, which are less clear
         and not useful without lookup functionality. This may be a future functionality.
         """
-
+        assert request_type in ('search', 'create', 'update'), 'Request type must be one of "search", "update", or "create".'
+        
         all_fields = self.get_all_fields(module, details=True)
         checked_fields = dict()
         checked_returns = list()
@@ -467,7 +462,7 @@ class RadiusInstance:
 
         for rf in return_fields:
             positive_id = False
-            for all_field_key, all_field_value in all_fields.items()::
+            for all_field_key, all_field_value in all_fields.items():
                 if all_field_value.get('Display Label'):
                     if rf == all_field_key or rf == all_field_value['Display Label']:
                         checked_returns.append(rf)
