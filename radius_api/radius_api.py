@@ -176,7 +176,7 @@ class RadiusInstance:
 
         .. note:: use ``create_request_object`` to generate the request_body
         """
-        if 'createFields' in request_body.keys():
+        if request_body.get('createFields'):
             return self._post(module=module, payload=request_body)['entity']
 
     def update_entity(self, module, entity_id, request_body):
@@ -430,57 +430,53 @@ class RadiusInstance:
             field_name = 'createFields'
         else:
             field_name = 'searchFields'
-        for field in fields.keys():
+        for field_key, field_value in fields.items():
             positive_id = False
-            for a in all_fields:
-                if 'Display Label' in all_fields[a].keys():
-                    if field == a or field == all_fields[a]['Display Label']:
-                        if 'Possible Values' in all_fields[a].keys():
+            for all_field_key, all_field_value in all_fields.items():
+                if all_field_value.get('Display Label'):
+                    if field_key == all_field_key or field_key == all_field_value['Display Label']:
+                        if all_field_value.get('Possible Values'):
                             # multi-select field must be list type or web service will return error
-                            if all_fields[a]['Data Type'] == 'Multi-Select' and type(fields[field]) != list:
-                                fields[field] = [fields[field]]
+                            if all_field_value['Data Type'] == 'Multi-Select' and type(field_value) != list:
+                                field_value = [field_value]
                             # to allow for multi-select list checking, convert single values to list
-                            # and use set mebership to test they are in possible values
-                            v = fields[field] if type(fields[field]) == list else [
-                                fields[field]]
-                            if set(v) <= set(all_fields[a]['Possible Values']):
-                                checked_fields[a] = fields[field]
+                            # and use set membership to test they are in possible values
+                            v = field_value if type(field_value) == list else [field_value]
+                            if set(v) <= set(all_field_value['Possible Values']):
+                                checked_fields[all_field_key] = field_value
                                 positive_id = True
                             else:
                                 raise APIError('Field value(s) <%s> not found in possible values for field <%s>.' % (
-                                    fields[field], field))
-                        elif field_name == 'searchFields' and all_fields[a]['Data Type'] == 'Date':
+                                    field_value, field_key))
+                        elif field_name == 'searchFields' and all_field_value['Data Type'] == 'Date':
                             # all displayed and returned dates are in format mm/dd/YYYY
                             # web service expects dates in ISO format (YYYY-mm-dd)
                             # but only when searching. we will convert.
-                            d = fields[field]
+                            d = field_value
                             parts = list(map(int, d.split('/')))
-                            checked_fields[a] = date(
-                                month=parts[0], day=parts[1], year=parts[2]).isoformat()
+                            checked_fields[all_field_key] = date(month=parts[0], day=parts[1], year=parts[2]).isoformat()
                             positive_id = True
                         else:
-                            checked_fields[a] = fields[field]
+                            checked_fields[all_field_key] = field_value
                             positive_id = True
-                elif field == 'Entity ID':
-                    checked_fields['Entity ID'] = fields[field]
+                elif field_key == 'Entity ID':
+                    checked_fields['Entity ID'] = field_value
                     positive_id = True
             if not positive_id and strict:
-                raise APIError(
-                    'Field name <%s> not found in module <%s>.' % (field, module))
+                raise APIError('Field name <%s> not found in module <%s>.' % (field, module))
 
         for rf in return_fields:
             positive_id = False
-            for a in all_fields:
-                if 'Display Label' in all_fields[a].keys():
-                    if rf == a or rf == all_fields[a]['Display Label']:
+            for all_field_key, all_field_value in all_fields.items()::
+                if all_field_value.get('Display Label'):
+                    if rf == all_field_key or rf == all_field_value['Display Label']:
                         checked_returns.append(rf)
                         positive_id = True
                 elif rf == 'Entity ID':
                     checked_returns.append('Entity ID')
                     positive_id = True
             if not positive_id and strict:
-                raise APIError(
-                    'Field name <%s> not found in module <%s>.' % (field, module))
+                raise APIError('Field name <%s> not found in module <%s>.' % (rf, module))
         request_object = {field_name: checked_fields}
         if checked_returns:
             request_object['returnFields'] = checked_returns
