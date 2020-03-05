@@ -7,7 +7,7 @@ setuptools.setup(
     name="radius_api",
     version="0.0.3",
     author="Bill Chandos",
-    author_email="chandos@uoregon.edu",
+    author_email="bill.chandos@gmail.com",
     description="A Radius CRM web services wrapper",
     long_description=long_description,
     long_description_content_type="text/markdown",
