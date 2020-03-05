@@ -18,17 +18,19 @@ Deletes an entity within a specific module. Accepts an entity ID, and returns a 
  #### `get_all_fields`
  Returns all the fields of a particular module as a list. Provides all field details when details=True.
  #### `get_entity`
- Given an entity id number and module, will return that entity.Specific fields can be provided as a comma-separated list. Default will return all fields.
+ Given an entity id number and module, will return that entity. Specific fields can be provided as a comma-separated list. Default will return all fields.
  #### `get_export_filter_as_file`
  Generates a CSV file from export filter results. Although Radius Web Services can return file contents natively, it returns a corrupted ZIP file that cannot be handled in software.
  #### `get_export_filter_as_list`
  Returns the export filter results as a list of dictionaries.
  #### `get_export_filter_id_by_name`
  Searches for an Export Filter by name and returns either the Export Filter ID, or an Exception if not found.
+ #### `get_export_filter_by_name_as_list`
+ This helper function combines a few web service calls to retrieve a named Export filter as a list.
  #### `get_metadata`
  Returns all metadata about a Radius module.
  #### `search_for_entities`
  Performs a search on a specific module. Accepts a JSON object consisting of `searchFields` and, optionally, returnFields. Returns all module fields if `returnFields` is not specified. 
- *Note: currently Radius Web Services will not return all fields if any field names have a period (.) and so it is best to specify return fields.*
+ *Note: currently Radius Web Services will not return all fields if any field names have a period (.) and so it is best to specify return fields explicitly.*
  #### `update_entity`
  Update an entity within a specific module. Accepts a JSON object consisting of `createFields` and, optionally, `returnFields`. Returns an entity ID, or other requested fields.
